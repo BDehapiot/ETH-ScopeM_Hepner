@@ -1,0 +1,11 @@
+name: ETH-ScopeM_Hepner
+
+channels:
+  - conda-forge
+      
+dependencies:
+  - python=3.9
+  - numpy
+  - scipy
+  - scikit-image
+  - matplotlib-base=3.6
