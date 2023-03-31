@@ -79,42 +79,42 @@ viewer.add_image(plot_img, blending='additive')
 
 #%% Get grayscale
 
-# # Extract gray scale (gScale)
-# gScale = np.linspace(avg_img[7,1], avg_img[7,-1], avg_img.shape[1]-2)
+# Extract gray scale (gScale)
+gScale = np.linspace(avg_img[7,1], avg_img[7,-1], avg_img.shape[1]-2)
 
-# # Extract number scale (nScale_img)
-# nScale_img = avg_img[17:24,1:-1].astype('uint8')
-# nScale_mask = np.invert(nScale_img) > 10
-# nScale_mask = remove_small_objects(nScale_mask, min_size=4)
+# Extract number scale (nScale_img)
+nScale_img = avg_img[17:24,1:-1].astype('uint8')
+nScale_mask = np.invert(nScale_img) > 10
+nScale_mask = remove_small_objects(nScale_mask, min_size=4)
 
-# # Read numbers
-# nScale_data = []
-# for prop in regionprops(label(nScale_mask)):
+# Read numbers
+nScale_data = []
+for prop in regionprops(label(nScale_mask)):
 
-#     ctrd_y = round(prop.centroid[0])
-#     ctrd_x = round(prop.centroid[1])    
-#     min_x = np.min(prop.coords[:,1])
-#     max_x = np.max(prop.coords[:,1])
-#     width = max_x - min_x
-#     nDigits = round(width/5)
-#     crop = nScale_img[:,min_x:max_x+1]    
+    ctrd_y = round(prop.centroid[0])
+    ctrd_x = round(prop.centroid[1])    
+    min_x = np.min(prop.coords[:,1])
+    max_x = np.max(prop.coords[:,1])
+    crop = nScale_img[:,min_x:max_x+1]
+    width = max_x - min_x
+    nDigits = round(width/5)
 
-#     number = ''    
-#     for i in range(nDigits):       
-#         ccrop = crop[:,i*5:i*5+5]
+    number = ''    
+    for i in range(nDigits):       
+        ccrop = crop[:,i*5:i*5+5]
         
-#         ssim = []
-#         for d in dLib1:            
-#             ssim.append(structural_similarity(ccrop, d, win_size=5))
-#         number = number + str(np.argmax(np.stack(ssim)))
+        ssim = []
+        for d in dLib1:            
+            ssim.append(structural_similarity(ccrop, d, win_size=5))
+        number = number + str(np.argmax(np.stack(ssim)))
     
-#     nScale_data.append([
-#         ctrd_y,
-#         ctrd_x,
-#         nDigits,
-#         crop,
-#         int(number),
-#         ])
+    nScale_data.append([
+        ctrd_y,
+        ctrd_x,
+        crop,
+        nDigits,
+        int(number),
+        ])
 
 # # -----------------------------------------------------------------------------
 
