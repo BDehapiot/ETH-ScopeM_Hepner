@@ -18,7 +18,7 @@ from skimage.morphology import (
 
 #%% Initialize ----------------------------------------------------------------
 
-img_name = 'expl_01.bmp'
+img_name = 'expl_03.bmp'
 
 # Open data
 img = io.imread(Path('data', img_name))
@@ -29,39 +29,39 @@ dLib2 = io.imread(Path('data/lib', 'dLib2.tif'))
 avg_img = np.mean(img, axis=2).astype('uint8')
 std_img = np.std(img, axis=2)
 
-#%% Plot & line ---------------------------------------------------------------
+#%% Cmap & line ---------------------------------------------------------------
 
 # Extract img_plot
 mask = std_img
 mask[mask!=0] = 255
-plot_img = avg_img.copy()
-plot_img[mask==255] = 255
-mask = plot_img != 255
+cmap_img = avg_img.copy()
+cmap_img[mask==255] = 255
+mask = cmap_img != 255
 mask = remove_small_objects(mask, min_size=8192)
-plot_img[mask==0] = 0
-plot_img = plot_img.astype('uint8')
+cmap_img[mask==0] = 0
+cmap_img = cmap_img.astype('uint8')
 
 # Clean img_plot
-for labl in np.unique(plot_img):
-    for prop in regionprops(label(plot_img == labl)):
+for labl in np.unique(cmap_img):
+    for prop in regionprops(label(cmap_img == labl)):
         if prop.area / prop.perimeter_crofton < 0.75:
-            plot_img[prop.coords[:,0], prop.coords[:,1]] = 0
+            cmap_img[prop.coords[:,0], prop.coords[:,1]] = 0
 
 # Extract img_plot 
-line_img = plot_img > 0
+line_img = cmap_img > 0
 line_img = binary_closing(line_img, footprint=disk(15))
 line_img = line_img ^ erosion(line_img)
 
 # Fill empty gaps (within line)
-plot_img = expand_labels(plot_img, distance=3)
+cmap_img = expand_labels(cmap_img, distance=3)
 mask = flood_fill(line_img, (0, 0), 255, connectivity=1)
-plot_img[mask == True] = 0
+cmap_img[mask == True] = 0
 
 # # Display
 # import napari
 # viewer = napari.Viewer()
 # viewer.add_image(line_img)
-# viewer.add_image(plot_img, blending='additive')
+# viewer.add_image(cmap_img, blending='additive')
 
 #%% Dots & associated numbers -------------------------------------------------
 
@@ -133,10 +133,10 @@ for labl in np.unique(cluster_label):
             dot_data[i][5] = number
             
 # Extract dot_img
-dot_img_labels = np.zeros_like(plot_img)
+dot_img_labels = np.zeros_like(cmap_img)
 for i, data in enumerate(dot_data):
     if not data[4]:
-        edm = np.zeros_like(plot_img, dtype=float)
+        edm = np.zeros_like(cmap_img, dtype=float)
         edm[data[0], data[1]] = 1
         edm = distance_transform_edt(1 - edm)
         edm[line_img == 0] = 255       
@@ -145,6 +145,7 @@ for i, data in enumerate(dot_data):
         dot_img_labels[y, x] = data[5]
 
 dot_img = dot_img_labels > 0
+dot_img_labels = dilation(dot_img_labels, footprint=disk(5))
 
 # # Display
 # import napari
@@ -208,20 +209,63 @@ popt, pcov = curve_fit(exponential, x, y, p0=[a0, b0, c0])
 x_fit = np.linspace(0, avg_img.shape[1]-2, avg_img.shape[1]-2)
 nScale = exponential(x_fit, *popt)
 
+# Convert cmap_img to linear scale 
+cmap_img_raw = np.zeros_like(cmap_img, dtype='float') 
+for gInt in np.unique(cmap_img):
+    if gInt != 0:
+        nInt = nScale[np.argmin(np.abs(gScale-gInt))]
+        coords = np.where(cmap_img == gInt)
+        cmap_img_raw[coords] = nInt
+
 # # Plot
 # plt.scatter(x, y, label='Data')
 # plt.plot(x_fit, nScale, label='Exponential fit')
 # plt.legend()
 # plt.show()
 
-#%% Output: display
+#%% Output: data
+
+np.savetxt(
+    Path('data', img_name.replace('.bmp', '_cmap.csv')),
+    cmap_img, delimiter=',', fmt='%d'
+    )
+
+np.savetxt(
+    Path('data', img_name.replace('.bmp', '_cmap-raw.csv')),
+    cmap_img_raw, delimiter=',', fmt='%.3f'
+    )
+
+
+
+
+#%% Output: images
+        
+io.imsave(
+    Path('data', img_name.replace('.bmp', '_cmap.tif')),
+    cmap_img, check_contrast=False,
+    )
+
+io.imsave(
+    Path('data', img_name.replace('.bmp', '_cmap-raw.tif')),
+    cmap_img_raw, check_contrast=False,
+    )
+
+io.imsave(
+    Path('data', img_name.replace('.bmp', '_dot-labels.tif')),
+    dot_img_labels, check_contrast=False,
+    ) 
+
+io.imsave(
+    Path('data', img_name.replace('.bmp', '_line.tif')),
+    line_img*255, check_contrast=False,
+    )  
 
 # # Display
 # import napari
 # viewer = napari.Viewer()
 # viewer.add_image(line_img)
-# viewer.add_image(dot_img, blending='additive')
-# viewer.add_image(plot_img, blending='additive')
+# viewer.add_image(dot_img_labels > 0, blending='additive')
+# viewer.add_image(cmap_img, blending='additive')
 
 #%% Output: plot
 
@@ -234,11 +278,11 @@ fontSize = 8
 
 rcParams['axes.linewidth'] = linewidth
 rcParams['axes.titlesize'] = fontSize * 1.5
-rcParams['axes.labelsize'] = fontSize
+rcParams['axes.labelsize'] = fontSize * 0.75
 rcParams['xtick.major.width'] = linewidth
 rcParams['ytick.major.width'] = linewidth
-rcParams['xtick.labelsize'] = fontSize * 0.75
-rcParams['ytick.labelsize'] = fontSize * 0.75
+rcParams['xtick.labelsize'] = fontSize * 0.6
+rcParams['ytick.labelsize'] = fontSize * 0.6
 
 # -----------------------------------------------------------------------------
 
@@ -255,20 +299,25 @@ left = (1 - plotSize) * 0.5
 right = left + plotSize
 
 # Prepare data for plot
-plot_y, plot_x = np.nonzero(plot_img)
+plot_y, plot_x = np.nonzero(cmap_img)
 plot_ctrd_y = round(np.mean(plot_y))
 plot_ctrd_x = round(np.mean(plot_x))
 dot_y, dot_x = np.nonzero(dot_img)
 dot_labels = dot_img_labels[dot_y, dot_x]
-plot_img_mask = np.ma.masked_where(plot_img == 0, plot_img)
+cmap_img_mask = np.ma.masked_where(cmap_img == 0, cmap_img)
 
 # Plot
 fig, ax = plt.subplots(figsize=(fig_width, fig_height), dpi=dpi)
 fig.subplots_adjust(top=top, bottom=bottom, right=right, left=left)
 plt.ylim([img.shape[0], 0])
 plt.xlim([0, img.shape[1]])
-plot = plt.imshow(
-    np.invert(plot_img_mask), 
+ax.set_xlabel('x position (pixel)')
+ax.set_ylabel('y position (pixel)')
+
+# -----------------------------------------------------------------------------
+
+plot1 = plt.imshow(
+    np.invert(cmap_img_mask), 
     cmap='plasma_r', 
     vmin=np.min(gScale), 
     vmax=np.max(gScale)
@@ -276,31 +325,30 @@ plot = plt.imshow(
 
 # -----------------------------------------------------------------------------
 
-plt.scatter(dot_x, dot_y, )
+plot2 = plt.scatter(dot_x, dot_y, s=10, c='red')
 for i, labl in enumerate(dot_labels):
     
     y = dot_y[i]; x = dot_x[i]
     cy = plot_ctrd_y; cx = plot_ctrd_x
-    edm_dot = np.zeros_like(plot_img, dtype=float)
-    edm_ctrd = np.zeros_like(plot_img, dtype=float)
+    edm_dot = np.zeros_like(cmap_img, dtype=float)
+    edm_ctrd = np.zeros_like(cmap_img, dtype=float)
     edm_dot[y, x] = 1; edm_ctrd[cy, cx] = 1
     edm_dot = distance_transform_edt(1 - edm_dot)    
     edm_ctrd = distance_transform_edt(1 - edm_ctrd) 
-    edm_ctrd[edm_dot > 20] = 0
+    edm_ctrd[edm_dot > 25] = 0
     txt_y, txt_x = np.unravel_index(np.argmax(edm_ctrd), edm_ctrd.shape)
     plt.text(
         txt_x, txt_y, labl, 
+        fontsize=fontSize * 0.75,
         horizontalalignment='center', 
         verticalalignment='center'
         )
     
 # -----------------------------------------------------------------------------
 
-from matplotlib.cm import get_cmap
-
 cbax = fig.add_axes([left, top, plotSize, 0.025])
-cbar = plt.colorbar(plot, orientation='horizontal', cax=cbax)
-cbax.set_xlabel(f'???')
+cbar = plt.colorbar(plot1, orientation='horizontal', cax=cbax)
+cbax.set_xlabel('???')
 cbax.xaxis.set_ticks_position('top')
 cbax.xaxis.set_label_position('top')
 cbar.set_ticks(np.linspace(np.min(gScale), np.max(gScale), 6))
@@ -312,22 +360,15 @@ cbar.set_ticklabels([data[4] for data in nScale_data])
 plt.savefig("output.tif", dpi=dpi)
 
 #%% Output: images
-
-# plot_img_nScale = np.zeros_like(plot_img, dtype='uint16') 
-# for gInt in np.unique(plot_img):
-#     if gInt != 0:
-#         nInt = nScale[np.argmin(np.abs(gScale-gInt))]
-#         coords = np.where(plot_img == gInt)
-#         plot_img_nScale[coords] = nInt
-        
+       
 # # Display
 # import napari
 # viewer = napari.Viewer()
-# viewer.add_image(plot_img_nScale)
+# viewer.add_image(cmap_img_raw)
 
 # io.imsave(
 #     Path('data', img_name.replace('.bmp', '_plot.tif')),
-#     plot_img, check_contrast=False,
+#     cmap_img, check_contrast=False,
 #     )
 # io.imsave(
 #     Path('data', img_name.replace('.bmp', '_dots.tif')),
@@ -337,6 +378,3 @@ plt.savefig("output.tif", dpi=dpi)
 #     Path('data', img_name.replace('.bmp', '_line.tif')),
 #     line_img, check_contrast=False,
 #     )  
-
-#%%
-
