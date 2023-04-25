@@ -235,20 +235,10 @@ fontSize = 8
 rcParams['axes.linewidth'] = linewidth
 rcParams['axes.titlesize'] = fontSize * 1.5
 rcParams['axes.labelsize'] = fontSize
-
 rcParams['xtick.major.width'] = linewidth
 rcParams['ytick.major.width'] = linewidth
-rcParams['xtick.minor.visible'] = True
-rcParams['ytick.minor.visible'] = True
 rcParams['xtick.labelsize'] = fontSize * 0.75
 rcParams['ytick.labelsize'] = fontSize * 0.75
-
-rcParams['figure.facecolor'] = 'white'
-rcParams['axes.facecolor'] = 'white'
-
-rcParams['scatter.marker'] = 'o'
-rcParams['scatter.edgecolors'] = 'black'
-rcParams['scatter.size'] = 50  # default marker size is 20, let's set it to 50
 
 # -----------------------------------------------------------------------------
 
@@ -286,7 +276,7 @@ plot = plt.imshow(
 
 # -----------------------------------------------------------------------------
 
-plt.scatter(dot_x, dot_y)
+plt.scatter(dot_x, dot_y, )
 for i, labl in enumerate(dot_labels):
     
     y = dot_y[i]; x = dot_x[i]
@@ -323,17 +313,17 @@ plt.savefig("output.tif", dpi=dpi)
 
 #%% Output: images
 
-plot_img_nScale = np.zeros_like(plot_img, dtype='uint16') 
-for gInt in np.unique(plot_img):
-    if gInt != 0:
-        nInt = nScale[np.argmin(np.abs(gScale-gInt))]
-        coords = np.where(plot_img == gInt)
-        plot_img_nScale[coords] = nInt
+# plot_img_nScale = np.zeros_like(plot_img, dtype='uint16') 
+# for gInt in np.unique(plot_img):
+#     if gInt != 0:
+#         nInt = nScale[np.argmin(np.abs(gScale-gInt))]
+#         coords = np.where(plot_img == gInt)
+#         plot_img_nScale[coords] = nInt
         
-# Display
-import napari
-viewer = napari.Viewer()
-viewer.add_image(plot_img_nScale)
+# # Display
+# import napari
+# viewer = napari.Viewer()
+# viewer.add_image(plot_img_nScale)
 
 # io.imsave(
 #     Path('data', img_name.replace('.bmp', '_plot.tif')),
