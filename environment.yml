@@ -8,4 +8,5 @@ dependencies:
   - numpy
   - scipy
   - scikit-image
+  - pandas
   - matplotlib-base=3.6

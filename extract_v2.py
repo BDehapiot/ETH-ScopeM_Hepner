@@ -1,6 +1,7 @@
 #%% Imports -------------------------------------------------------------------
 
 import numpy as np
+import pandas as pd
 from skimage import io 
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -225,6 +226,22 @@ for gInt in np.unique(cmap_img):
 
 #%% Output: data
 
+dot_info = []       
+for lab in np.unique(dot_img_labels):  
+    if lab > 0:
+        y, x = np.where(dot_img_labels == lab)
+        dot_info.append((lab, int(np.mean(y)), int(np.mean(x))))
+dot_info = pd.DataFrame(
+    np.stack(dot_info), 
+    columns=['#dot', 'y-coord', 'x-coord'], 
+    )
+
+
+np.savetxt(
+    Path('data', img_name.replace('.bmp', '_dot-info.csv')),
+    dot_info, delimiter=',', fmt='%d'
+    )
+
 np.savetxt(
     Path('data', img_name.replace('.bmp', '_cmap.csv')),
     cmap_img, delimiter=',', fmt='%d'
@@ -235,9 +252,6 @@ np.savetxt(
     cmap_img_raw, delimiter=',', fmt='%.3f'
     )
 
-
-
-
 #%% Output: images
         
 io.imsave(
@@ -247,7 +261,7 @@ io.imsave(
 
 io.imsave(
     Path('data', img_name.replace('.bmp', '_cmap-raw.tif')),
-    cmap_img_raw, check_contrast=False,
+    cmap_img_raw.astype('float32'), check_contrast=False,
     )
 
 io.imsave(
