@@ -5,21 +5,21 @@ Extract numerical data from bmp image plots
 The goal here is to extract all numerical information contained in bmp image plots (e.g. `data/expl_01.bmp`) to allow further analysis. 
 
 ## Installation
-1 - Install miniconda on your computer:  
+1 - Download this GitHub repository  
+
+2 - Install miniconda:  
 https://docs.conda.io/en/latest/miniconda.html  
 
-2 - Run a conda prompt and install mamba in your base conda environment:  
+3 - Run conda prompt and install mamba in base conda environment:  
 `conda install mamba -n base -c conda-forge`  
 
-3 - Download this GitHub repository  
-
-4 - Run a conda prompt, move to the downloaded repository, and install the conda environment:  
+4 - Run conda prompt, from downloaded repository, and install conda environment:  
 `mamba env create -f environment.yml`   
 
-5 - Activate the conda environment:  
+5 - Activate conda environment:  
 `conda activate ETH-ScopeM_Hepner`  
 
-6 - (Optional) Install spyder IDE:
+6 - (Optional) Install spyder IDE:  
 `pip install spyder` 
 
 ## Outputs
