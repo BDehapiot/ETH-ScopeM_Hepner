@@ -23,8 +23,8 @@ img_name = 'expl_03.bmp'
 
 # Open data
 img = io.imread(Path('data', img_name))
-dLib1 = io.imread(Path('data/lib', 'dLib1.tif'))
-dLib2 = io.imread(Path('data/lib', 'dLib2.tif'))
+dLib1 = io.imread(Path('data/library', 'dLib1.tif'))
+dLib2 = io.imread(Path('data/library', 'dLib2.tif'))
 
 # Get avg & std img (RGB channels)
 avg_img = np.mean(img, axis=2).astype('uint8')
@@ -218,11 +218,11 @@ for gInt in np.unique(cmap_img):
         coords = np.where(cmap_img == gInt)
         cmap_img_raw[coords] = nInt
 
-# # Plot
-# plt.scatter(x, y, label='Data')
-# plt.plot(x_fit, nScale, label='Exponential fit')
-# plt.legend()
-# plt.show()
+# Plot
+plt.scatter(x, y, label='Data')
+plt.plot(x_fit, nScale, label='Exponential fit')
+plt.legend()
+plt.show()
 
 #%% Plot
 
