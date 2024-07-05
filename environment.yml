@@ -1,12 +1,20 @@
-name: ETH-ScopeM_Hepner
+name: Hepner
 
 channels:
   - conda-forge
-      
+
 dependencies:
+  # conda_core
   - python=3.9
   - numpy
+  - numba
   - scipy
-  - scikit-image
   - pandas
-  - matplotlib-base=3.6
+  - scikit-image
+  - matplotlib-base
+  - pip
+  # conda_spec
+  - spyder
+  - pip:
+    # pip_core
+    # pip_spec
